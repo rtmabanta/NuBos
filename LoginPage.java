@@ -24,6 +24,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -213,50 +214,42 @@ public class LoginPage extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         		
         		String email = txtUserNameEmail.getText().trim();
-        		String password = pswEnterPassword.getText().trim();
+        		String password = new String (pswEnterPassword.getText().trim());
+        		
+        		if (chkBxRememberMe.isSelected()) {
+                    try (PrintWriter out = new PrintWriter(new FileWriter("src/nubos/LoggedInUser.txt"))) {
+                        out.print(email);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(null, "Error in storing session: " + ex.getMessage());
+                    }
+                }
         		
         		try (BufferedReader br = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"))) {
         	            String line;
         	            boolean found = false;
         	            while ((line = br.readLine()) != null) {
-        	            
-        	                String[] parts = line.split(": ");
-
-        	                // Check if the current line's field is email or password and matches with entered data
-        	                if (parts.length >= 2) {
-        	                    if (parts[0].equalsIgnoreCase("Email") && parts[1].equals(email)) {
-        	                        // Matched email, check password
-        	                        String passwordLine = br.readLine();
-        	                        String[] passwordParts = passwordLine.split(": ");
-        	                        if (passwordParts.length >= 2 && passwordParts[0].equalsIgnoreCase("Password") && passwordParts[1].equals(password)) {
-        	                            // Matched password
-        	                            found = true;
-        	                            break;
-        	                        }
-        	                    }
+        	            	if (line.contains("Email:'" + email + "'") && line.contains("Password:'" + password + "'")) {
+        	                    // Found user with matching email and password
+        	                    found = true;
+        	                    break;
         	                }
         	            }
 
         	            if (found) {
-        	                JOptionPane.showMessageDialog(null, "Login successful!");
-        	                if (chkBxRememberMe.isSelected()) {
-        	                    try (PrintWriter out = new PrintWriter(new FileWriter("src/nubos/LoggedInUser.txt"))) {
-        	                        out.print(email);
-        	                    } catch (IOException ex) {
-        	                        JOptionPane.showMessageDialog(null, "Error in storing session: " + ex.getMessage());
-        	                    }
-        	                }
+        	                JOptionPane.showMessageDialog(null, "Login successful");
+        	                // Open MyProfile or your desired page here
         	                SchedulePage schedulePage = new SchedulePage();
         	                schedulePage.setVisible(true);
         	                dispose();
         	            } else {
-        	                JOptionPane.showMessageDialog(null, "Invalid email or password!");
+        	                JOptionPane.showMessageDialog(null, "Incorrect email or password.");
         	            }
-        	        } catch (IOException ex) {
-        	            JOptionPane.showMessageDialog(null, "Error in reading information: " + ex.getMessage());
+        	        } catch (IOException ioException) {
+        	            ioException.printStackTrace();
         	        }
         	    }
-        });
+        	});
+        	           
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnLogin.setIcon(new ImageIcon(LoginPage.class.getResource("/nubos/Assets/LoginButton1.png")));
