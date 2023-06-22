@@ -42,10 +42,10 @@ public class MyProfile extends BasePage {
 		super();
 		
 		String address = findAddressInFile("src/nubos/FileCabinet.txt");
-		String contact = findContactInFile("src/nubos/FileCabinet.txt");
+		int contact = findContactInFile("src/nubos/FileCabinet.txt");
 		String contactPname = findContactPnameFile("src/nubos/FileCabinet.txt");
 		String relation = findRelationInFile("src/nubos/FileCabinet.txt");
-		String contactPnumber = findContactPnumInFile("src/nubos/FileCabinet.txt");
+		int contactPnum = findContactPnumInFile("src/nubos/FileCabinet.txt");
 		String contactPemail = findContactPemailInFile("src/nubos/FileCabinet.txt");
 		
 		pnlName = new JPanel();
@@ -432,8 +432,8 @@ public class MyProfile extends BasePage {
 	
 		
 		txtFldEmCnctNo = new JTextField();
-		if (contactPnumber !=null) {
-			txtFldEmCnctNo.setText(contactPnumber);
+		if (contactPnum !=null) {
+			txtFldEmCnctNo.setText(contactPnum);
 			txtFldEmCnctNo.setForeground(new Color(153, 153, 153));
 		} else {
 			txtFldEmCnctNo.setText(" Enter phone or mobile number");
@@ -586,7 +586,13 @@ public class MyProfile extends BasePage {
 		                String fullName = parts[0].split("'")[1];
 		                String password = parts[2].split("'")[1];
 		                String studentId = parts[3].split("'")[1];
-		                user = new User(fullName, email, password, studentId);
+		                String address = parts[4].split("'")[1];
+		                int contact = Integer.parseInt(parts[5].split("'")[1]);
+		                String contactPname = parts[6].split("'")[1];
+		                String relation = parts[7].split("'")[1];
+		                int contactPnum = Integer.parseInt(parts[8].split("'")[1]);
+		                String contactPemail = parts[9].split("'")[1];
+		                user = new User(fullName, email, password, studentId, address, contact, contactPname, relation, contactPnum, contactPemail);
 		                break;
 		            }
 		        }
@@ -594,6 +600,15 @@ public class MyProfile extends BasePage {
 		        ioException.printStackTrace();
 		    }
 		    return user;
+		}
+		public void initialize() {
+			String email = UserSession.getLoggedInUserEmail();
+			User user = getUserData(email);
+			if (user != null) {
+		        txtFldName.setText(user.getFullName());
+		        txtFldEmail.setText(user.getEmailAddress());
+		        txtFldStudentID.setText(user.getStudentId());
+		}
 	}
 }
 	
