@@ -534,11 +534,7 @@ public class MyProfile extends BasePage {
 			                    }
 			                    
 			                    if (inGroup) {
-			                    	  if (line.startsWith("Name: ")) {
-			                              line = "Name: " + txtFldName.getText();
-			                          } else if (line.startsWith("Student ID: ")) {
-			                              line = "Student ID: " + txtFldStudentID.getText();
-			                          } else if (line.startsWith("Address: ")) {
+			                    	  if (line.startsWith("Address: ")) {
 			                              line = "Address: " + txtFldAddress.getText();
 			                          } else if (line.startsWith("Contact: ")) {
 			                              line = "Contact: " + txtFldContact.getText();
@@ -559,8 +555,6 @@ public class MyProfile extends BasePage {
 			                  if (!hasEmail) {
 			                      updatedLines.add("");
 			                      updatedLines.add(email);
-			                      updatedLines.add("Name: " + txtFldName.getText());
-			                      updatedLines.add("Student ID: " + txtFldStudentID.getText());
 			                      updatedLines.add("Address: " + txtFldAddress.getText());
 			                      updatedLines.add("Contact: " + txtFldContact.getText());
 			                      updatedLines.add("Contact Person Name: " + txtFldEmCnctName.getText());
@@ -582,143 +576,25 @@ public class MyProfile extends BasePage {
 		setVisible(true);
 		
 		}
-		private String findNameInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> nameLine = lines
-			            .filter(line -> line.startsWith("Name: "))  // only keep lines starting with "Name: "
-			            .findFirst();  // get the first line that starts with "Name: ", if any
-			        if (nameLine.isPresent()) {
-			            return nameLine.get().substring("Name: ".length());  // remove "Name: " from the start of the line
-			        } else {
-			            return "";  // return empty string if no line starts with "Name: "
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return "";
-			}
-		}
-		private String findStudentIDInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> studentIDLine = lines
-			            .filter(line -> line.startsWith("Student ID: "))  // only keep lines starting with "Name: "
-			            .findFirst();  // get the first line that starts with "Name: ", if any
-			        if (studentIDLine.isPresent()) {
-			            return studentIDLine.get().substring("Student ID: ".length());  // remove "Name: " from the start of the line
-			        } else {
-			            return "";  // return empty string if no line starts with "Name: "
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return "";
-			    }
-			}
-		private String findEmailInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> emailLine = lines
-			            .filter(line -> line.startsWith("Email: "))  
-			            .findFirst();  
-			        if (emailLine.isPresent()) {
-			            return emailLine.get().substring("Email: ".length());  
-			        } else {
-			            return "";  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return "";
-			    }
-			}
-		private String findAddressInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> addressLine = lines
-			            .filter(line -> line.startsWith("Address: "))  
-			            .findFirst();  
-			        if (addressLine.isPresent()) {
-			            return addressLine.get().substring("Address: ".length());  
-			        } else {
-			            return null;  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return null;
-			    }
-			}
-		
-		private String findContactInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> contactLine = lines
-			            .filter(line -> line.startsWith("Contact: "))  
-			            .findFirst();  
-			        if (contactLine.isPresent()) {
-			            return contactLine.get().substring("Contact: ".length());  
-			        } else {
-			            return null;  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return null;
-			    }
-			}
-		
-		private String findContactPnameFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> contactPnameLine = lines
-			            .filter(line -> line.startsWith("Contact Person Name: "))  
-			            .findFirst();  
-			        if (contactPnameLine.isPresent()) {
-			            return contactPnameLine.get().substring("Contact Person Name: ".length());  
-			        } else {
-			            return null;  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return null;
-			    }
-			}
-		private String findRelationInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> relationLine = lines
-			            .filter(line -> line.startsWith("Relation: "))  
-			            .findFirst();  
-			        if (relationLine.isPresent()) {
-			            return relationLine.get().substring("Relation: ".length());  
-			        } else {
-			            return null;  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return null;
-			    }
-			}
-		private String findContactPnumInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> contactPnumLine = lines
-			            .filter(line -> line.startsWith("Contact Person Number: "))  
-			            .findFirst();  
-			        if (contactPnumLine.isPresent()) {
-			            return contactPnumLine.get().substring("Contact Person Number: ".length());  
-			        } else {
-			            return null;  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return null;
-			    }
-			}
-		private String findContactPemailInFile(String fileName) {
-			 try (Stream<String> lines = Files.lines(Paths.get(fileName), StandardCharsets.UTF_8)) {
-			        Optional<String> contactPemailLine = lines
-			            .filter(line -> line.startsWith("Contact Person Email: "))  
-			            .findFirst();  
-			        if (contactPemailLine.isPresent()) {
-			            return contactPemailLine.get().substring("Contact Person Email: ".length());  
-			        } else {
-			            return null;  
-			        }
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        return null;
-			    }
-			}
+		public User getUserData(String email) {
+		    User user = null;
+		    try (BufferedReader br = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"))) {
+		        String line;
+		        while ((line = br.readLine()) != null) {
+		            if (line.contains("Email:'" + email + "'")) {
+		                String[] parts = line.split("', ");
+		                String fullName = parts[0].split("'")[1];
+		                String password = parts[2].split("'")[1];
+		                String studentId = parts[3].split("'")[1];
+		                user = new User(fullName, email, password, studentId);
+		                break;
+		            }
+		        }
+		    } catch (IOException ioException) {
+		        ioException.printStackTrace();
+		    }
+		    return user;
+	}
 }
 	
 	
