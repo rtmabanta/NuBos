@@ -41,13 +41,6 @@ public class MyProfile extends BasePage {
 	public MyProfile() {
 		super();
 		
-		String address = findAddressInFile("src/nubos/FileCabinet.txt");
-		int contact = findContactInFile("src/nubos/FileCabinet.txt");
-		String contactPname = findContactPnameFile("src/nubos/FileCabinet.txt");
-		String relation = findRelationInFile("src/nubos/FileCabinet.txt");
-		int contactPnum = findContactPnumInFile("src/nubos/FileCabinet.txt");
-		String contactPemail = findContactPemailInFile("src/nubos/FileCabinet.txt");
-		
 		pnlName = new JPanel();
 		pnlName.setBorder(new LineBorder(new Color(0, 0, 0)));
 		pnlName.setBackground(new Color(51, 51, 204));
@@ -242,7 +235,7 @@ public class MyProfile extends BasePage {
 	             }
 	         }
 	     });
-		txtFldName.setText(findNameInFile("src/nubos/FileCabinet.txt"));
+		
 		txtFldName.setForeground(new Color(153, 153, 153));
 		txtFldName.setFont(new Font("Calibri", Font.PLAIN, 15));
 		txtFldName.setBorder(new LineBorder(new Color(0, 0, 0)));
@@ -270,7 +263,7 @@ public class MyProfile extends BasePage {
 	             }
 	         }
 	     });
-		txtFldStudentID.setText(findStudentIDInFile("src/nubos/FileCabinet.txt"));
+	
 		txtFldStudentID.setForeground(new Color(153, 153, 153));
 		txtFldStudentID.setFont(new Font("Calibri", Font.PLAIN, 15));
 		txtFldStudentID.setColumns(10);
@@ -280,13 +273,6 @@ public class MyProfile extends BasePage {
 
 		
 		txtFldAddress = new JTextField();
-		if (address !=null) {
-		    txtFldAddress.setText(address);
-		    txtFldAddress.setForeground(new Color(153, 153, 153));
-		} else {
-		    txtFldAddress.setText(" Enter your address");
-		    txtFldAddress.setForeground(new Color(0, 0, 0)); // Change to the color for actual input text
-		}
 		txtFldAddress.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -312,13 +298,6 @@ public class MyProfile extends BasePage {
 	
 		
 		txtFldContact = new JTextField();
-		if (contact !=null) {
-			txtFldContact.setText(contact);
-			txtFldContact.setForeground(new Color(153, 153, 153));
-		} else {
-			txtFldContact.setText(" Enter your phone or mobile number");
-			txtFldContact.setForeground(new Color(0, 0, 0)); // Change to the color for actual input text
-		}
 		txtFldContact.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -360,7 +339,6 @@ public class MyProfile extends BasePage {
 	             }
 	         }
 	     });
-		txtFldEmail.setText(findEmailInFile("src/nubos/FileCabinet.txt"));		
 		txtFldEmail.setForeground(new Color(153, 153, 153));
 		txtFldEmail.setFont(new Font("Calibri", Font.PLAIN, 15));
 		txtFldEmail.setColumns(10);
@@ -370,13 +348,6 @@ public class MyProfile extends BasePage {
 	
 		
 		txtFldEmCnctName = new JTextField();
-		if (contactPname !=null) {
-			txtFldEmCnctName.setText(contactPname);
-			txtFldEmCnctName.setForeground(new Color(153, 153, 153));
-		} else {
-			txtFldEmCnctName.setText(" Enter name of contact person");
-			txtFldEmCnctName.setForeground(new Color(0, 0, 0)); // Change to the color for actual input text
-		}
 		txtFldEmCnctName.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -401,13 +372,6 @@ public class MyProfile extends BasePage {
 
 		
 		txtFldRela = new JTextField();
-		if (relation !=null) {
-			txtFldRela.setText(relation);
-			txtFldRela.setForeground(new Color(153, 153, 153));
-		} else {
-			txtFldRela.setText(" Enter relationship");
-			txtFldRela.setForeground(new Color(0, 0, 0)); // Change to the color for actual input text
-		}
 		txtFldRela.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -432,13 +396,6 @@ public class MyProfile extends BasePage {
 	
 		
 		txtFldEmCnctNo = new JTextField();
-		if (contactPnum !=null) {
-			txtFldEmCnctNo.setText(contactPnum);
-			txtFldEmCnctNo.setForeground(new Color(153, 153, 153));
-		} else {
-			txtFldEmCnctNo.setText(" Enter phone or mobile number");
-			txtFldEmCnctNo.setForeground(new Color(0, 0, 0)); // Change to the color for actual input text
-		}
 		txtFldEmCnctNo.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -463,13 +420,6 @@ public class MyProfile extends BasePage {
 
 		
 		txtFldEmCnctEmail = new JTextField();
-		if (contactPemail !=null) {
-			txtFldEmCnctEmail.setText(contactPemail);
-			txtFldEmCnctEmail.setForeground(new Color(153, 153, 153));
-		} else {
-			txtFldEmCnctEmail.setText(" Enter email address");
-			txtFldEmCnctEmail.setForeground(new Color(0, 0, 0)); // Change to the color for actual input text
-		}
 		txtFldEmCnctEmail.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -576,6 +526,10 @@ public class MyProfile extends BasePage {
 		setVisible(true);
 		
 		}
+		private String getText(String string) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 		public User getUserData(String email) {
 		    User user = null;
 		    try (BufferedReader br = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"))) {
@@ -608,6 +562,12 @@ public class MyProfile extends BasePage {
 		        txtFldName.setText(user.getFullName());
 		        txtFldEmail.setText(user.getEmailAddress());
 		        txtFldStudentID.setText(user.getStudentId());
+		        txtFldAddress.setText(user.getAddress());
+		        txtFldContact.setText(String.valueOf(user.getContact()));
+		        txtFldEmCnctName.setText(user.getContactPname());
+		        txtFldRela.setText(user.getRelation());
+		        txtFldEmCnctNo.setText(String.valueOf(user.getContactPnum()));
+		        txtFldEmCnctEmail.setText(user.getContactPemail());
 		}
 	}
 }
