@@ -40,7 +40,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.Dimension;
 
-public class RegistrationPage extends JFrame {
+public class RegistrationPage extends JFrame{
 
 	private JPanel contentPane;
 	private JTextField txtFldFullname, txtFldEmail, txtFldPassword, txtFldStudentID;
@@ -370,12 +370,19 @@ public class RegistrationPage extends JFrame {
         btnSignUp.setFocusTraversalKeysEnabled(false);
         btnSignUp.setFocusable(false);
         btnSignUp.addActionListener(new ActionListener() {
+        
         	public void actionPerformed(ActionEvent e) {
         		
         		String email = txtFldEmail.getText().trim();
-        		String name = txtFldFullname.getText().trim();
+        		String fullName = txtFldFullname.getText().trim();
         		String password = pswFldPassword.getText().trim();
         		String studentId = txtFldStudentID.getText().trim();
+        		String address = null;
+        		int contact = (Integer) null;
+        		String contactPname = null;
+        		String relation = null;
+        		int contactPnum = (Integer) null;
+        		String contactPemail = null;
         		String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$";
         		
         		try {
@@ -384,9 +391,11 @@ public class RegistrationPage extends JFrame {
                         BufferedReader br = new BufferedReader(new FileReader(file));
                         String line;
                         while ((line = br.readLine()) != null) {
-                            if (line.equalsIgnoreCase("Email: " + email)) {
+                        	String emailFromFile = line.split(",")[1].split(":")[1].replace("'", "").trim();
+                            if (emailFromFile.equalsIgnoreCase(email)) {
                                 JOptionPane.showMessageDialog(null, "This email is already registered.");
                                 JOptionPane.showMessageDialog(null, "Please enter your valid email"); 
+                                br.close();
                                 return;
                             }
                         }
@@ -396,7 +405,7 @@ public class RegistrationPage extends JFrame {
                     JOptionPane.showMessageDialog(null, "Error in reading the file: " + ex.getMessage());
                 }
         		
-        		if (name.isEmpty() || name.equalsIgnoreCase("Enter your fullname")) {      			
+        		if (fullName.isEmpty() || fullName.equalsIgnoreCase("Enter your fullname")) {      			
     	            JOptionPane.showMessageDialog(null, "Please enter your fullname"); 
     	            return;        	            
     	        }  else {
@@ -427,7 +436,10 @@ public class RegistrationPage extends JFrame {
     	            return;
     	        }
         	    	
-        	    	 BufferedWriter bw = null;
+    	    	User user = new User(fullName, email, password, studentId, address, contact, contactPname, relation, contactPnum, contactPemail);
+    	    	String userInfo = "Fullname: '" + user.getFullName() + "', Email:'" + user.getEmailAddress() +
+    	    			 		  "', Password:'" + user.getPassword() + "', StudentId:'" + user.getStudentId() + "'";
+        	    	 /*BufferedWriter bw = null;
         	            try {
         	                File file = new File("src/nubos/FileCabinet.txt");
         	                if (!file.exists()) {
@@ -460,14 +472,36 @@ public class RegistrationPage extends JFrame {
         	                    }
         	                }
         	            }
-        	        }
+        	        }*/
+    	    		BufferedWriter bw = null;
+		    	    	try {
+		                    BufferedWriter writer = new BufferedWriter(new FileWriter("src/nubos/FileCabinet.txt", true));
+		                    writer.write(userInfo + System.lineSeparator());
+		                    writer.close();
+		                    JOptionPane.showMessageDialog(null, "Registered successful!");
+		                } catch (IOException ex) {
+		                	JOptionPane.showMessageDialog(null, "Error in storing information: " + ex.getMessage());
+		                } finally {
+        	                if(bw != null){
+        	                    try {
+        	                        bw.close();
+        	                    } catch(IOException ex){
+        	                        ex.printStackTrace();
+        	                    }
+        	                }
+        	            }
+        	    	}
         		  	txtFldFullname.setText(" Enter your fullname");
         	        txtFldEmail.setText(" Enter your valid email");
+        	        pswFldPassword.setText("");
+        	        pswFldPassword.setVisible(false);
+        	        txtFldPassword.setText(" Enter your password");
         	        txtFldPassword.setVisible(true);
         	        txtFldStudentID.setText(" Enter your Student ID or Applicant No.");
         	        chkBoxAgreement.setSelected(false);
         	    }
-        });
+        	}
+        );
         btnSignUp.setFocusPainted(false);
         btnSignUp.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         ImageIcon originalIcon = new ImageIcon(RegistrationPage.class.getResource("/nubos/Assets/SignUpButton1.png"));
@@ -514,11 +548,6 @@ public class RegistrationPage extends JFrame {
         lyrdPaneReg.add(lblRegistrationBg);
         
        
-        
-       
-        
-       
-        
         
         setVisible(true);
                 
