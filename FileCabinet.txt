@@ -1,5 +1,3 @@
-Name: tian
-Email: tian@gmail.com
-Password: Kalot123456
-Student ID: 123456
+Fullname: 'Tian', Email:'tian@gmail.com', Password:'Kalot111679', StudentId:'123456'
+Fullname: 'Juan', Email:'juan@gmail.com', Password:'Juan123456', StudentId:'000000'
 
