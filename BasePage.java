@@ -87,6 +87,7 @@ public class BasePage extends JFrame {
     	                JOptionPane.YES_NO_OPTION);
 
     	        if (option == JOptionPane.YES_OPTION) {
+    	        UserSession.setLoggedInUserEmail(null);
     	    	new LoginPage();
         		dispose();
     	        }
