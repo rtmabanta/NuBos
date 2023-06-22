@@ -1,3 +1,2 @@
-Fullname: 'Tian', Email:'tian@gmail.com', Password:'Kalot111679', StudentId:'123456'
-Fullname: 'Juan', Email:'juan@gmail.com', Password:'Juan123456', StudentId:'000000'
-
+Fullname: 'Tian', Email:'tian@gmail.com', Password:'Kalot111679', StudentId:'123456', Address:'', Contact:'', Contact Person Name:'', Relation:'', Contact Person Number:'', Contact Person Email:''
+Fullname: 'Juan', Email:'juan@gmail.com', Password:'Juan123456', StudentId:'000000', Address:'', Contact:'', Contact Person Name:'', Relation:'', Contact Person Number:'', Contact Person Email:''
