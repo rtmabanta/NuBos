@@ -526,10 +526,8 @@ public class MyProfile extends BasePage {
 		setVisible(true);
 		
 		}
-		private String getText(String string) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
+	
 		public User getUserData(String email) {
 		    User user = null;
 		    try (BufferedReader br = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"))) {
