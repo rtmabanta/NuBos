@@ -524,7 +524,7 @@ public class MyProfile extends BasePage {
 		layeredPane.add(btnUpdate, JLayeredPane.PALETTE_LAYER);
 		
 		setVisible(true);
-		
+		initialize();
 		}
 	
 	
@@ -533,9 +533,9 @@ public class MyProfile extends BasePage {
 		    try (BufferedReader br = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"))) {
 		        String line;
 		        while ((line = br.readLine()) != null) {
-		            if (line.contains("Email:'" + email + "'")) {
-		                String[] parts = line.split("', ");
-		                String fullName = parts[0].split("'")[1];
+		            if (line.contains("Email:" + email)) {
+		                String[] parts = line.split(", ");
+		                String fullName = parts[0].split("FullName:")[1].trim() + ",";
 		                String password = parts[2].split("'")[1];
 		                String studentId = parts[3].split("'")[1];
 		                String address = parts[4].split("'")[1];
@@ -557,15 +557,8 @@ public class MyProfile extends BasePage {
 			String email = UserSession.getLoggedInUserEmail();
 			User user = getUserData(email);
 			if (user != null) {
-		        txtFldName.setText(user.getFullName());
-		        txtFldEmail.setText(user.getEmailAddress());
-		        txtFldStudentID.setText(user.getStudentId());
-		        txtFldAddress.setText(user.getAddress());
-		        txtFldContact.setText(String.valueOf(user.getContact()));
-		        txtFldEmCnctName.setText(user.getContactPname());
-		        txtFldRela.setText(user.getRelation());
-		        txtFldEmCnctNo.setText(String.valueOf(user.getContactPnum()));
-		        txtFldEmCnctEmail.setText(user.getContactPemail());
+			    txtFldName.setText(user.getFullName());
+		      
 		}
 	}
 }
