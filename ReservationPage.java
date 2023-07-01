@@ -12,27 +12,13 @@ import javax.swing.DefaultComboBoxModel;
 import java.awt.Cursor;
 import javax.swing.JFormattedTextField;
 import javax.swing.SwingConstants;
-import java.awt.Point;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.AbstractListModel;
-import javax.swing.BorderFactory;
-
 import java.awt.Dimension;
 import javax.swing.JTextField;
-import com.toedter.calendar.JDateChooser;
-import com.toedter.calendar.JCalendar;
-import java.awt.Rectangle;
-import javax.swing.JLabel;
 import javax.swing.border.BevelBorder;
-import javax.swing.border.CompoundBorder;
-
-import java.awt.Insets;
 import javax.swing.JButton;
-import javax.swing.ImageIcon;
-import javax.swing.border.EmptyBorder;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -45,8 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.text.SimpleDateFormat;
 import java.awt.event.ActionEvent;
+import com.toedter.calendar.IDateEvaluator;
+import com.toedter.calendar.JCalendar;
 
 public class ReservationPage extends BasePage {
 	
@@ -68,8 +57,6 @@ public class ReservationPage extends BasePage {
 	private String reservedDropOffFromFile = null;
 	private String reservedScheduleFromFile = null;
 	private String reservedDateFromFile = null;
-
-
 
 	public ReservationPage() {
 		super();
@@ -286,6 +273,59 @@ public class ReservationPage extends BasePage {
 		layeredPane.add(table, JLayeredPane.PALETTE_LAYER);
 		
 		calendar = new JCalendar();
+		calendar.getDayChooser().addDateEvaluator(new IDateEvaluator() {
+		    @Override
+		    public boolean isSpecial(Date date) {
+		        Calendar c = Calendar.getInstance();
+		        c.setTime(date);
+		        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+		        int month = c.get(Calendar.MONTH);
+
+		        // If the month is July or August (months are 0-based in Calendar)
+		        if (month == Calendar.JULY || month == Calendar.AUGUST) {
+		            // If the day is Tuesday, Wednesday or Friday
+		            if (dayOfWeek == Calendar.TUESDAY || dayOfWeek == Calendar.WEDNESDAY || dayOfWeek == Calendar.FRIDAY) {
+		                return true;
+		            }
+		        }
+		        return false;
+		    }
+
+		    @Override
+		    public boolean isInvalid(Date date) {
+		        return !isSpecial(date);
+		    }
+
+		    @Override
+		    public Color getSpecialForegroundColor() {
+		        return null;
+		    }
+
+		    @Override
+		    public Color getSpecialBackroundColor() {
+		        return null;
+		    }
+
+		    @Override
+		    public String getSpecialTooltip() {
+		        return null;
+		    }
+
+		    @Override
+		    public Color getInvalidForegroundColor() {
+		        return null;
+		    }
+
+		    @Override
+		    public Color getInvalidBackroundColor() {
+		        return null;
+		    }
+
+		    @Override
+		    public String getInvalidTooltip() {
+		        return null;
+		    }
+		});
 		calendar.getDayChooser().getDayPanel().setRequestFocusEnabled(false);
 		calendar.setBorder(new LineBorder(new Color(102, 204, 255), 5));
 		calendar.getDayChooser().getDayPanel().setFont(new Font("Calibri", Font.PLAIN, 15));
@@ -355,13 +395,17 @@ public class ReservationPage extends BasePage {
 		btnReserve.setBackground(new Color(51, 51, 204));
 		btnReserve.setBounds(904, 652, 326, 36);
 		btnReserve.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			//public void actionPerformed(ActionEvent e) {
+			public synchronized void actionPerformed(ActionEvent e) {
 				try {
 					String userEmail = UserSession.getLoggedInUserEmail();
 					String origin = cmbOrigin.getSelectedItem().toString().trim();
 		            String dropOff = cmbDropOff.getSelectedItem().toString().trim();
 		            String schedule = cmbSched.getSelectedItem().toString().trim();
 		            Date selectedDate = calendar.getDate();
+		            DateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy");
+		            String formattedDate = dateFormat.format(selectedDate);
+		            
 		            
 		            if (origin.isEmpty() || dropOff.isEmpty() || schedule.isEmpty()) {
 		                JOptionPane.showMessageDialog(null, "Please select Origin, Drop Off, and Schedule.");
@@ -378,10 +422,62 @@ public class ReservationPage extends BasePage {
 		                return;
 		            }
 		            
-		            DateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy");
-		            String formattedDate = dateFormat.format(selectedDate);
+		            /*BufferedReader slotReader = new BufferedReader(new FileReader("src/nubos/Slots.txt"));
+		            String slotLine = slotReader.readLine();
+		            slotReader.close();
+
+		            if (slotLine != null) {
+		                String[] slotParts = slotLine.split(", ");
+
+		                String slotOrigin = "";
+		                String slotSchedule = "";
+		                String slotDate = "";
+
+		                for (String part : slotParts) {
+		                    if (part.startsWith("Origin:")) {
+		                        slotOrigin = part.substring("Origin:".length()).trim();
+		                    } else if (part.startsWith("Schedule:")) {
+		                        slotSchedule = part.substring("Schedule:".length()).trim();
+		                    } else if (part.startsWith("Date:")) {
+		                        slotDate = part.substring("Date:".length()).trim();
+		                    }
+		                }
+
+		                if (origin.equals(slotOrigin) && schedule.equals(slotSchedule) && formattedDate.equals(slotDate)) {
+		                	int reservationCount = 0;
+		                    try (BufferedReader reservationReader = new BufferedReader(new FileReader("src/nubos/ReservationList.txt"))) {
+								String reservationLine;
+								while ((reservationLine = reservationReader.readLine()) != null) {
+								    String[] parts = reservationLine.split(", ");
+								    String resOrigin = "", resSchedule = "", resDate = "";
+								    for (String part : parts) {
+								        if (part.startsWith("Origin:")) {
+								            resOrigin = part.substring("Origin:".length()).trim();
+								        } else if (part.startsWith("Schedule:")) {
+								            resSchedule = part.substring("Schedule:".length()).trim();
+								        } else if (part.startsWith("Date:")) {
+								            resDate = part.substring("Date:".length()).trim();
+								        }
+								    }
+								    if (origin.equals(resOrigin) && schedule.equals(resSchedule) && formattedDate.equals(resDate)) {
+								        reservationCount++;
+								        if (reservationCount >= 1) {
+								        	JOptionPane.showMessageDialog(null, "The maximum reservation limit for this slot has been reached.");
+								            return;
+								        }
+								    }
+								}
+								reservationReader.close();
+							} catch (HeadlessException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+
+		                  
+		                }
+		            }*/
 		            
-					BufferedReader reader = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"));
+		            BufferedReader reader = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"));
 
 			            String line;
 			            boolean foundUser = false;
@@ -546,6 +642,7 @@ public class ReservationPage extends BasePage {
 	        if (reservedDateFromFile != null) {
 	            ((DefaultTableModel) table.getModel()).setValueAt(reservedDateFromFile, 3, 3);
 	        }
+	    
 	    }
 	}
 
