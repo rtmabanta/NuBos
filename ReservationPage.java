@@ -19,8 +19,16 @@ import java.awt.Dimension;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.JButton;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,8 +40,9 @@ import java.util.List;
 import java.util.Date;
 import java.text.DateFormat;
 import java.util.Calendar;
+import java.util.Scanner;
 import java.text.SimpleDateFormat;
-import java.awt.event.ActionEvent;
+
 import com.toedter.calendar.IDateEvaluator;
 import com.toedter.calendar.JCalendar;
 
@@ -57,6 +66,7 @@ public class ReservationPage extends BasePage {
 	private String reservedDropOffFromFile = null;
 	private String reservedScheduleFromFile = null;
 	private String reservedDateFromFile = null;
+	private SimpleDateFormat sdf = new SimpleDateFormat("MMMM d, yyyy");
 
 	public ReservationPage() {
 		super();
@@ -206,6 +216,14 @@ public class ReservationPage extends BasePage {
 		layeredPane.add(fmtAvblSeats, JLayeredPane.PALETTE_LAYER);
 		
 		cmbOrigin = new JComboBox<String>();
+		cmbOrigin.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent event) {
+		        if (event.getStateChange() == ItemEvent.SELECTED) {
+		            updateSeats();
+		        }
+		    }
+		});
 		cmbOrigin.setRequestFocusEnabled(false);
 		cmbOrigin.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		cmbOrigin.setBorder(new LineBorder(new Color(0, 0, 0)));
@@ -217,6 +235,14 @@ public class ReservationPage extends BasePage {
 		layeredPane.add(cmbOrigin, JLayeredPane.PALETTE_LAYER);
 		
 		cmbDropOff = new JComboBox<String>();
+		cmbDropOff.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent event) {
+		        if (event.getStateChange() == ItemEvent.SELECTED) {
+		            updateSeats();
+		        }
+		    }
+		});
 		cmbDropOff.setModel(new DefaultComboBoxModel<String>(new String[] {"", "  NU Manila", "  NU Moa"}));
 		cmbDropOff.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		cmbDropOff.setRequestFocusEnabled(false);
@@ -228,6 +254,14 @@ public class ReservationPage extends BasePage {
 		layeredPane.add(cmbDropOff, JLayeredPane.PALETTE_LAYER);
 		
 		cmbSched = new JComboBox<String>();
+		cmbSched.addItemListener(new ItemListener() {
+			@Override
+		    public void itemStateChanged(ItemEvent event) {
+		        if (event.getStateChange() == ItemEvent.SELECTED) {
+		            updateSeats();
+		        }
+		    }
+		});
 		cmbSched.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		cmbSched.setModel(new DefaultComboBoxModel(new String[] {"", "  8 AM", "  10 AM", "  1 PM", "  3 PM"}));
 		cmbSched.setRequestFocusEnabled(false);
@@ -326,6 +360,14 @@ public class ReservationPage extends BasePage {
 		        return null;
 		    }
 		});
+		calendar.getDayChooser().addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+		    public void propertyChange(PropertyChangeEvent event) {
+		        if (event.getPropertyName().equals("day")) {
+		            updateSeats();
+		        }
+		    }
+		});
 		calendar.getDayChooser().getDayPanel().setRequestFocusEnabled(false);
 		calendar.setBorder(new LineBorder(new Color(102, 204, 255), 5));
 		calendar.getDayChooser().getDayPanel().setFont(new Font("Calibri", Font.PLAIN, 15));
@@ -339,7 +381,16 @@ public class ReservationPage extends BasePage {
 		btnCnlRes = new JButton("Cancel/Reschedule");
 		btnCnlRes.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				reservedNameFromFile = null;
+				synchronized(ReservationPage.this) {
+					String userEmail = UserSession.getLoggedInUserEmail();
+		            //cancelReservation(userEmail);
+					boolean reservationCancelled = cancelReservation(userEmail);
+		            
+		            if (reservationCancelled) {
+		                updateSeats();
+		            }
+				
+				}
 		        ((DefaultTableModel) table.getModel()).setValueAt(null, 0, 1);
 		        ((DefaultTableModel) table.getModel()).setValueAt(null, 0, 3);
 		        ((DefaultTableModel) table.getModel()).setValueAt(null, 1, 1);
@@ -348,6 +399,13 @@ public class ReservationPage extends BasePage {
 		        ((DefaultTableModel) table.getModel()).setValueAt(null, 2, 3);
 		        ((DefaultTableModel) table.getModel()).setValueAt(null, 3, 1);
 		        ((DefaultTableModel) table.getModel()).setValueAt(null, 3, 3);
+		        
+		        Calendar unselectableDate = Calendar.getInstance();
+		        unselectableDate.set(Calendar.YEAR, 2023); // Or some year that is not selectable
+		        unselectableDate.set(Calendar.MONTH, Calendar.JULY);
+		        unselectableDate.set(Calendar.DAY_OF_MONTH, 1);
+		        
+		        calendar.setDate(unselectableDate.getTime());
 		        
 		        try {
 		            String userEmail = UserSession.getLoggedInUserEmail();
@@ -362,6 +420,35 @@ public class ReservationPage extends BasePage {
 		            }
 
 		            Files.write(reservationListPath, updatedLines);
+		            //String origin = ((String) cmbOrigin.getSelectedItem()).trim();
+		           // String schedule = ((String) cmbSched.getSelectedItem()).trim();
+		          //  String date = sdf.format(calendar.getDate());
+		        
+		        } catch (IOException ex) {
+		            ex.printStackTrace();
+		        }
+		        
+		        txtSeats.setText("");
+		   
+		        try {
+		            String slotsFilePath = "src/nubos/Slots.txt"; 
+		            List<String> lines = Files.readAllLines(Paths.get(slotsFilePath));
+
+		            String chosenDate = "userChosenDate";
+		            String chosenTime = "userChosenTime";
+		            String chosenSchedule = "userChosenSchedule";
+
+		            for (String line : lines) {
+		            	if (line.contains(chosenDate) && line.contains(chosenTime) && line.contains(chosenSchedule)) {
+		                   
+		            		String availableSeats = line.substring(line.indexOf("Seats:") + "Seats:".length()).trim();
+
+		                    txtSeats.setText(availableSeats);
+
+		                break;
+		                }
+		            }
+
 		        } catch (IOException ex) {
 		            ex.printStackTrace();
 		        }
@@ -397,6 +484,7 @@ public class ReservationPage extends BasePage {
 		btnReserve.addActionListener(new ActionListener() {
 			//public void actionPerformed(ActionEvent e) {
 			public synchronized void actionPerformed(ActionEvent e) {
+				
 				try {
 					String userEmail = UserSession.getLoggedInUserEmail();
 					String origin = cmbOrigin.getSelectedItem().toString().trim();
@@ -421,61 +509,6 @@ public class ReservationPage extends BasePage {
 		                JOptionPane.showMessageDialog(null, "Please choose a date.");
 		                return;
 		            }
-		            
-		            /*BufferedReader slotReader = new BufferedReader(new FileReader("src/nubos/Slots.txt"));
-		            String slotLine = slotReader.readLine();
-		            slotReader.close();
-
-		            if (slotLine != null) {
-		                String[] slotParts = slotLine.split(", ");
-
-		                String slotOrigin = "";
-		                String slotSchedule = "";
-		                String slotDate = "";
-
-		                for (String part : slotParts) {
-		                    if (part.startsWith("Origin:")) {
-		                        slotOrigin = part.substring("Origin:".length()).trim();
-		                    } else if (part.startsWith("Schedule:")) {
-		                        slotSchedule = part.substring("Schedule:".length()).trim();
-		                    } else if (part.startsWith("Date:")) {
-		                        slotDate = part.substring("Date:".length()).trim();
-		                    }
-		                }
-
-		                if (origin.equals(slotOrigin) && schedule.equals(slotSchedule) && formattedDate.equals(slotDate)) {
-		                	int reservationCount = 0;
-		                    try (BufferedReader reservationReader = new BufferedReader(new FileReader("src/nubos/ReservationList.txt"))) {
-								String reservationLine;
-								while ((reservationLine = reservationReader.readLine()) != null) {
-								    String[] parts = reservationLine.split(", ");
-								    String resOrigin = "", resSchedule = "", resDate = "";
-								    for (String part : parts) {
-								        if (part.startsWith("Origin:")) {
-								            resOrigin = part.substring("Origin:".length()).trim();
-								        } else if (part.startsWith("Schedule:")) {
-								            resSchedule = part.substring("Schedule:".length()).trim();
-								        } else if (part.startsWith("Date:")) {
-								            resDate = part.substring("Date:".length()).trim();
-								        }
-								    }
-								    if (origin.equals(resOrigin) && schedule.equals(resSchedule) && formattedDate.equals(resDate)) {
-								        reservationCount++;
-								        if (reservationCount >= 1) {
-								        	JOptionPane.showMessageDialog(null, "The maximum reservation limit for this slot has been reached.");
-								            return;
-								        }
-								    }
-								}
-								reservationReader.close();
-							} catch (HeadlessException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-
-		                  
-		                }
-		            }*/
 		            
 		            BufferedReader reader = new BufferedReader(new FileReader("src/nubos/FileCabinet.txt"));
 
@@ -545,11 +578,17 @@ public class ReservationPage extends BasePage {
 	                } catch (IOException ex) {
 	                    ex.printStackTrace();
 	                }
-			                
+			                    String availableSeats = getAvailableSeats(origin, dropOff, schedule, formattedDate);
+			                    if (availableSeats.isEmpty() || Integer.parseInt(availableSeats) <= 0) {
+			                        JOptionPane.showMessageDialog(null, "No seats available for the selected location, schedule, and date.");
+			                        return;
+			                    }
 			                    try (FileWriter writer = new FileWriter("src/nubos/ReservationList.txt", true)) { // true for append mode
 			                        writer.write("Email:" + userEmail + ", FullName:" + fullName + ", StudentId:" + studentId + 
 			                        			 ", Address:" + address + ", Contact:" + contact + ", Origin:" + origin + 
 			                        			 ", DropOff:" + dropOff + ", Schedule:" + schedule + ", Date:" + formattedDate + "\n");
+			                        makeReservation();
+			                        
 			                    } catch (IOException ex) {
 			                        ex.printStackTrace();
 			                    }
@@ -571,14 +610,16 @@ public class ReservationPage extends BasePage {
 			                // Handle case when user is not found
 			            	JOptionPane.showMessageDialog(null, "User information not found");
 			            }
+			            
 			            cmbOrigin.setSelectedIndex(0);
 			            cmbDropOff.setSelectedIndex(0);
 			            cmbSched.setSelectedIndex(0);	
 			            calendar.setDate(selectedDate);
+			           
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
-			                      
+				updateSeats();             
 				}
 			    
 			});
@@ -588,7 +629,7 @@ public class ReservationPage extends BasePage {
 		setupReservation();
 		
 		}
-	 private void setupReservation() {
+	 private synchronized void setupReservation() {
 	        // Read the reservation from the file, if it exists
 	        String reservedNameFromFile = null;
 	        String reservedStudentIDFromFile = null;
@@ -643,8 +684,177 @@ public class ReservationPage extends BasePage {
 	            ((DefaultTableModel) table.getModel()).setValueAt(reservedDateFromFile, 3, 3);
 	        }
 	    
+	 }
+	 public synchronized String getAvailableSeats(String origin, String dropOff, String schedule, String date) {
+	        String seats = "";
+
+	        try {
+	            File file = new File("src/nubos/Slots.txt");
+	            Scanner scanner = new Scanner(file);
+
+	            while (scanner.hasNextLine()) {
+	                String line = scanner.nextLine();
+
+	                if (line.contains(origin) && line.contains(dropOff) && line.contains(schedule) && line.contains(date)) {
+	                    String[] parts = line.split(", "); // Split line by comma
+
+	                    for (String part : parts) {
+	                        if (part.trim().startsWith("Seats")) {
+	                            seats = part.split(":")[1].trim(); // Get the seats count
+	                            break;
+	                        }
+	                    }
+	                }
+	            }
+
+	            scanner.close();
+	        } catch (FileNotFoundException e) {
+	            e.printStackTrace();
+	        }
+
+	        return seats;
+	    }
+
+	    public synchronized void updateSeats() {
+	        String origin = ((String) cmbOrigin.getSelectedItem()).trim();
+	        String dropOff = ((String) cmbDropOff.getSelectedItem()).trim();
+	        String sched = ((String) cmbSched.getSelectedItem()).trim();
+	        
+	        if (origin.isEmpty() || dropOff.isEmpty() || sched.isEmpty()) {
+	            // If origin or schedule is not selected, don't update the seats.
+	            return;
+	        }
+
+	        // Convert selected date to string format "MMMM d, yyyy" to match with file
+	        String date = sdf.format(calendar.getDate());
+
+	        String seats = getAvailableSeats(origin, dropOff, sched, date);
+	        txtSeats.setText(seats);
+	    }
+	    public synchronized void makeReservation() {
+	        String origin = ((String) cmbOrigin.getSelectedItem()).trim();
+	        String dropOff = ((String) cmbDropOff.getSelectedItem()).trim();
+	        String sched = ((String) cmbSched.getSelectedItem()).trim();
+	        String date = sdf.format(calendar.getDate());
+
+	        File slotsFile = new File("src/nubos/Slots.txt");
+	        File tempFile = new File("src/nubos/SlotsTemp.txt");
+
+	        try {
+	            BufferedReader reader = new BufferedReader(new FileReader(slotsFile));
+	            BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+
+	            String currentLine;
+	            while ((currentLine = reader.readLine()) != null) {
+	                // trim newline when comparing with lineToRemove
+	                String trimmedLine = currentLine.trim();
+
+	                if (trimmedLine.contains(origin) && trimmedLine.contains(dropOff) && trimmedLine.contains(sched) && trimmedLine.contains(date)) {
+	                    String[] parts = trimmedLine.split(", "); // Split line by comma
+
+	                    for (String part : parts) {
+	                        if (part.trim().startsWith("Seats")) {
+	                            int seats = Integer.parseInt(part.split(":")[1].trim()); // Get the seats count
+	                            seats--; // Decrement the seats
+	                            currentLine = currentLine.replace(part, "Seats:" + seats);
+	                            break;
+	                        }
+	                    }
+	                }
+
+	                writer.write(currentLine + System.getProperty("line.separator"));
+	            }
+
+	            writer.close();
+	            reader.close();
+
+	            // Delete the original file
+	            if (!slotsFile.delete()) {
+	                System.out.println("Could not delete file");
+	                return;
+	            }
+
+	            // Rename the new file to the filename the original file had.
+	            if (!tempFile.renameTo(slotsFile))
+	                System.out.println("Could not rename file");
+
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+
+	        // Refresh the available seats
+	        updateSeats();
+	    }
+	    public synchronized boolean cancelReservation(String userEmail) {
+	    	boolean reservationCancelled = false;
+	        try {
+	            Path reservationListPath = Paths.get("src/nubos/ReservationList.txt");
+	            List<String> lines = Files.readAllLines(reservationListPath);
+	            List<String> updatedLines = new ArrayList<>();
+	            String origin = "", dropOff = "", schedule = "", date = "";
+	            
+	            for (String line : lines) {
+	                if (line.startsWith("Email:" + userEmail)) {
+	                    // Split the line into individual data items
+	                    String[] parts = line.split(", ");
+	                    for (String part : parts) {
+	                        if (part.startsWith("Origin:")) {
+	                            origin = part.substring("Origin:".length()).trim();
+	                        } else if (part.startsWith("DropOff:")) {
+	                        	dropOff = part.substring("DropOff:".length()).trim();
+	                        } else if (part.startsWith("Schedule:")) {
+	                            schedule = part.substring("Schedule:".length()).trim();
+	                        } else if (part.startsWith("Date:")) {
+	                            date = part.substring("Date:".length()).trim();
+	                        }
+	                    }
+	                } else {
+	                    updatedLines.add(line);
+	                }
+	            }
+
+	            // Write the updated reservations to the file
+	            Files.write(reservationListPath, updatedLines);
+
+	            // Now update the available seats in the Slots.txt file
+	            Path slotsPath = Paths.get("src/nubos/Slots.txt");
+	            lines = Files.readAllLines(slotsPath);
+	            updatedLines.clear();
+	            
+	            boolean seatsUpdated = false;
+
+	            for (String line : lines) {
+	                if (line.contains("Origin:" + origin) && line.contains("DropOff:" + dropOff) && line.contains("Schedule:" + schedule) && line.contains("Date:" + date)) {
+	                    String[] parts = line.split(", ");
+	                    for (String part : parts) {
+	                        if (part.startsWith("Seats:")) {
+	                            int seats = Integer.parseInt(part.substring("Seats:".length()).trim());
+	                            seats++; // Increase the number of available seats
+	                            if (seats > 3) {
+	                                seats = 3;
+	                                seatsUpdated = true;
+	                            }
+	                            line = line.replace(part, "Seats:" + seats);
+	                        }
+	                    }
+	                }
+	                updatedLines.add(line);
+	            }
+
+	            // Write the updated slots to the file
+	            Files.write(slotsPath, updatedLines);
+	            if (seatsUpdated) {
+	            	txtSeats.setText("2"); // Update the seats only if they have been modified
+	            }
+	            
+	        } catch (IOException ex) {
+	            ex.printStackTrace();
+	        }	       
+	        updateSeats();
+			return reservationCancelled;
 	    }
 	}
+
 
 	
 		
